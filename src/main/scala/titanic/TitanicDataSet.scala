@@ -18,7 +18,10 @@ object TitanicDataSet {
    * @param attList List of attributes where the missings should be counted
    * @return A Map that contains the attribute names (key) and the number of missings (value)
    */
-  def countAllMissingValues(data: List[Map[String, Any]], attList: List[String]): Map[String, Int] = ???
+  def countAllMissingValues(data: List[Map[String, Any]], attList: List[String]): Map[String, Int] = {
+    val res = attList.map(att => (att, data.count(record => record.getOrElse(att, null) == null)))
+    res.toMap
+  }
 
   /**
    * This function should extract a set of given attributes from a record
