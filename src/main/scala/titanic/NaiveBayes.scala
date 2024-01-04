@@ -11,7 +11,12 @@ object NaiveBayes {
    * @return A Map with the attribute name as the key and the number of distinct
    *         values as the value
    */
-  def countAttributeValues(data:List[Map[String, Any]], attribList:String): Map[Any,Int]= ???
+  def countAttributeValues(data:List[Map[String, Any]], attribList:String): Map[Any,Int]= {
+
+      val attribs= attribList.split(",").map(_.trim).toSet
+      val x= data.flatMap(_.filterKeys(attribs.contains).values).groupBy(identity).mapValues(_.size)
+      x
+  }
 
   /**
    * Extracts all attribute names that occur in a data set
@@ -19,7 +24,9 @@ object NaiveBayes {
    * @param data    Data Set to be searched
    * @return A List of the attribute names that appear in the data set
    */
-  def getAttributes(data:List[Map[String, Any]]):Set[String]= ???
+  def getAttributes(data:List[Map[String, Any]]):Set[String]= {
+      data.flatMap(_.keys).toSet
+  }
 
   /**
    * Extracts all attribute values that occur in a data set.
