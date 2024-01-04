@@ -50,7 +50,11 @@ object NaiveBayes {
    * @return A Map that consists of all classes (as key) and their corresponding prior propabilities.
    *
    */
-  def calcPriorPropabilities(data:List[Map[String, Any]], classAttrib:String):Map[Any,Double]= ???
+  def calcPriorPropabilities(data:List[Map[String, Any]], classAttrib:String):Map[Any,Double]= {
+      val classVals= countAttributeValues(data,classAttrib)
+      val total= classVals.values.sum
+      classVals.mapValues(_.toDouble/total)
+  }
 
   /**
    * This function should count for each class and attribute how often an
@@ -68,7 +72,20 @@ object NaiveBayes {
    *
    */
   def calcAttribValuesForEachClass(data:List[Map[String, Any]], classAttrib:String):
-  Map[Any, Set[(String, Map[Any, Int])]] = ???
+  Map[Any, Set[(String, Map[Any, Int])]] = {
+    val attribs = getAttributes(data) - classAttrib // Exclude class attribute from the attributes list
+    val classGroups = data.groupBy(_(classAttrib))
+
+    classGroups.map { case (classValue, instances) =>
+      val attribCount = instances
+        .flatMap(_.filterKeys(attribs.contains)) // Filtering by relevant attributes (excluding class attribute)
+        .groupBy(_._1) // Grouping by attribute names
+        .map { case (attribName, attribInstances) =>
+          attribName.toString -> attribInstances.groupBy(_._2).mapValues(_.size).toMap // Counting occurrences
+        }
+      classValue -> attribCount.map(ac => (ac._1, ac._2)).toSet
+    }
+  }
 
   /**
    * This function should calculate the conditional propabilities for each class and attribute.
