@@ -94,12 +94,7 @@ class calcAttribValuesForEachClassNaiveBayesTest extends AnyFunSuite {
   test("Calc PriorPropablities") {
 
     val res = NaiveBayes.calcPriorPropabilities(trainDataSet, "class")
-    val exp = Map(
-      "late" -> 0.1,
-      "cancled" -> 0.05,
-      "very late" -> 0.15,
-      "on time" -> 0.7
-    )
+    val exp = Map("late" -> 0.1, "cancled" -> 0.05, "very late" -> 0.15, "on time" -> 0.7)
     assert(res === exp)
   }
 
@@ -181,11 +176,7 @@ class calcAttribValuesForEachClassNaiveBayesTest extends AnyFunSuite {
     val condProp = NaiveBayes.calcConditionalPropabilitiesForEachClass(data, classVals)
     val prior = NaiveBayes.calcPriorPropabilities(trainDataSet, "class")
 
-    val el = Map[String, String](
-      "day" -> "weekday",
-      "season" -> "winter",
-      "wind" -> "high",
-      "rain" -> "heavy")
+    val el = Map[String, String]("day" -> "weekday", "season" -> "winter", "wind" -> "high", "rain" -> "heavy")
 
     val res = NaiveBayes.calcClassValuesForPrediction(el, condProp, prior)
     val resExt = res.toList.asInstanceOf[List[(String, Double)]].sorted
