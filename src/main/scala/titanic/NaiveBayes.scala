@@ -105,8 +105,8 @@ object NaiveBayes {
    */
   def calcConditionalPropabilitiesForEachClass(data: Map[Any, Set[(String, Map[Any, Int])]], classCounts: Map[Any, Int]):
   Map[Any, Set[(String, Map[Any, Double])]] = {
-    data.map{ case (classValue, attributes) =>
-        (classValue, attributes.map(a => (a._1, a._2.mapValues(x => x.toDouble / classCounts(classValue)))))
+    data.map { case (classValue, attributes) =>
+      (classValue, attributes.map(a => (a._1, a._2.mapValues(x => x.toDouble / classCounts(classValue)))))
     }
   }
 
@@ -125,7 +125,17 @@ object NaiveBayes {
    * @return A Map that consists of all classes (as key) and their corresponding probability
    */
   def calcClassValuesForPrediction(record: Map[String, Any], conditionalProps: Map[Any, Set[(String, Map[Any, Double])]], priorProps: Map[Any, Double]):
-  Map[Any, Double] = ???
+  Map[Any, Double] = {
+    val probabilitiesWithoutPriorFactor = conditionalProps.map { case (key, attrSet) =>
+      (
+        key,
+        attrSet.toMap // Transform to map because duplicate float values would be deleted in a Set
+          .map(x => (record(x._1), x._2))
+          .map(y => y._2.getOrElse(y._1, 0.0)).product
+      )
+    }
+    probabilitiesWithoutPriorFactor.map(x => (x._1, x._2 * priorProps(x._1))) // multiply with respective PriorProbability
+  }
 
   /**
    * This function finds the class with the highest probability
