@@ -1,6 +1,6 @@
 package titanic
 
-import scala.reflect.runtime.universe.Try
+import scala.util.{Try, Success, Failure}
 
 object TitanicDataSet {
 
@@ -68,7 +68,20 @@ object TitanicDataSet {
    * @param data Training Data Set that needs to be prepared
    * @return Prepared Data Set for using it with Naive Bayes
    */
-  def createDataSetForTraining(data: List[Map[String, Any]]): List[Map[String, Any]] = ???
+  def createDataSetForTraining(data: List[Map[String, Any]]): List[Map[String, Any]] = {
+    val necessaryAttributes = List("PassengerId", "Survived", "Pclass", "Sex", "Age")
+
+    data.map { record =>
+      val extractedAttributes = extractTrainingAttributes(record, necessaryAttributes)
+      val updatedAttributes = necessaryAttributes.foldLeft(extractedAttributes) { (acc, att) =>
+        acc.get(att) match {
+          case Some(value) => acc // if value is present, keep it
+          case None => acc - att // if value is missing, ensure it's not in the map
+        }
+      }
+      updatedAttributes.updated("Age", categorizeAge(updatedAttributes.get("Age")))
+    }
+  }
 
 
   /**
