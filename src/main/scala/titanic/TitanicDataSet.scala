@@ -21,8 +21,9 @@ object TitanicDataSet {
    * @return A Map that contains the attribute names (key) and the number of missings (value)
    */
   def countAllMissingValues(data: List[Map[String, Any]], attList: List[String]): Map[String, Int] = {
-    val res = attList.map(att => (att, data.count(record => record.getOrElse(att, null) == null)))
-    res.toMap
+    val dataWithLowercaseAttribs = data.map(record => record.map { case (key, value) => key.toLowerCase -> value })
+    val res = attList.map(att => (att, dataWithLowercaseAttribs.count(record => record.getOrElse(att.toLowerCase(), null) == null)))
+    res.toMap.filter(record => record._2 != 0)
   }
 
   /**
@@ -39,11 +40,12 @@ object TitanicDataSet {
 
     // Map through each attribute and collect the value if it's not null or missing
     attList.flatMap { att =>
-      val lowerAtt = att.toLowerCase  // Convert attribute to lowercase to match record's keys
+      val lowerAtt = att.toLowerCase // Convert attribute to lowercase to match record's keys
       lowerCaseRecord.get(lowerAtt).flatMap {
-        case value: String if value.nonEmpty => Some(att -> value)  // Ensure the value is not empty
-        case value: Int => Some(att -> value)  // Int values are directly added
-        case _ => None  // Skip null, non-Int and empty values
+        case value: String if value.nonEmpty => Some(att -> value) // Ensure the value is not empty
+        case value: Int => Some(att -> value) // Int values are directly added
+        case value: Float => Some(att -> value.toInt) // Float values are casted to int
+        case _ => None // Skip null, non-Int and empty values
       }
     }.toMap
   }
@@ -70,17 +72,10 @@ object TitanicDataSet {
    */
   def createDataSetForTraining(data: List[Map[String, Any]]): List[Map[String, Any]] = {
     val necessaryAttributes = List("PassengerId", "Survived", "Pclass", "Sex", "Age")
-
-    data.map { record =>
-      val extractedAttributes = extractTrainingAttributes(record, necessaryAttributes)
-      val updatedAttributes = necessaryAttributes.foldLeft(extractedAttributes) { (acc, att) =>
-        acc.get(att) match {
-          case Some(value) => acc // if value is present, keep it
-          case None => acc - att // if value is missing, ensure it's not in the map
-        }
-      }
-      updatedAttributes.updated("Age", categorizeAge(updatedAttributes.get("Age")))
-    }
+    data.map(record => {
+      val extractedRecord = extractTrainingAttributes(record, necessaryAttributes)
+      extractedRecord.updated("Age", categorizeAge(extractedRecord.get("Age")))
+    })
   }
 
 
