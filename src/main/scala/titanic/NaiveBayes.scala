@@ -194,7 +194,24 @@ object NaiveBayes {
    */
   def calcConditionalPropabilitiesForEachClassWithSmoothing(data: Map[Any, Set[(String, Map[Any, Int])]], attValues: Map[String, Set[Any]], classCounts: Map[Any, Int]):
   Map[Any, Set[(String, Map[Any, Double])]] = {
-    ???
+    //adding the one smoothing
+    val smoothingFactor = 1.0
+
+    data.map { case (classValue, attributeData) =>
+      val updatedAttributeData = attributeData.map { case (attributeName, valueCounts) =>
+        val totalClassCount = classCounts(classValue).toDouble + smoothingFactor * attValues(attributeName).size
+
+        val updatedValueCounts = attValues(attributeName).map { value =>
+          val countWithSmoothing = valueCounts.getOrElse(value, 0) + smoothingFactor
+          val probability = countWithSmoothing / totalClassCount
+          value -> probability
+        }.toMap
+
+        attributeName -> updatedValueCounts
+      }
+
+      classValue -> updatedAttributeData
+    }
   }
 
   /**
