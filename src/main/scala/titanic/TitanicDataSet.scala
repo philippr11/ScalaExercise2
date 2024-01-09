@@ -1,5 +1,7 @@
 package titanic
 
+import scala.util.{Try, Success, Failure}
+
 object TitanicDataSet {
 
   /**
@@ -18,7 +20,11 @@ object TitanicDataSet {
    * @param attList List of attributes where the missings should be counted
    * @return A Map that contains the attribute names (key) and the number of missings (value)
    */
-  def countAllMissingValues(data: List[Map[String, Any]], attList: List[String]): Map[String, Int] = ???
+  def countAllMissingValues(data: List[Map[String, Any]], attList: List[String]): Map[String, Int] = {
+    val dataWithLowercaseAttribs = data.map(record => record.map { case (key, value) => key.toLowerCase -> value })
+    val res = attList.map(att => (att, dataWithLowercaseAttribs.count(record => record.getOrElse(att.toLowerCase(), null) == null)))
+    res.toMap.filter(record => record._2 != 0)
+  }
 
   /**
    * This function should extract a set of given attributes from a record
@@ -28,7 +34,33 @@ object TitanicDataSet {
    * @return A Map that contains only the attributes that should be extracted
    *
    */
-  def extractTrainingAttributes(record: Map[String, Any], attList: List[String]): Map[String, Any] = ???
+  def extractTrainingAttributes(record: Map[String, Any], attList: List[String]): Map[String, Any] = {
+    // Ensure the attribute names in the record are lowercase for consistent matching
+    val lowerCaseRecord = record.map { case (k, v) => k.toLowerCase -> v }
+
+    // Map through each attribute and collect the value if it's not null or missing
+    attList.flatMap { att =>
+      val lowerAtt = att.toLowerCase // Convert attribute to lowercase to match record's keys
+      lowerCaseRecord.get(lowerAtt).flatMap {
+        case value: String if value.nonEmpty => Some(att -> value) // Ensure the value is not empty
+        case value: Int => Some(att -> value) // Int values are directly added
+        case value: Float => Some(att -> value.toInt) // Float values are casted to int
+        case _ => None // Skip null, non-Int and empty values
+      }
+    }.toMap
+  }
+
+  /**
+   * Helper function that categorizes the age attribute
+   */
+  def categorizeAge(age: Option[Any]): String = age match {
+    case Some(a: Double) if a <= 12 => "Child" // Assuming age might be parsed as Double
+    case Some(a: Double) if a <= 19 => "Teenager"
+    case Some(a: Double) if a <= 40 => "Young Adult"
+    case Some(a: Double) if a <= 60 => "Older Adult"
+    case Some(a: Double) => "Old"
+    case _ => "Unknown" // Handle non-numeric or missing age gracefully
+  }
 
   /**
    * This function should create the training data set. It extracts the necessary attributes,
@@ -38,7 +70,14 @@ object TitanicDataSet {
    * @param data Training Data Set that needs to be prepared
    * @return Prepared Data Set for using it with Naive Bayes
    */
-  def createDataSetForTraining(data: List[Map[String, Any]]): List[Map[String, Any]] = ???
+  def createDataSetForTraining(data: List[Map[String, Any]]): List[Map[String, Any]] = {
+    val necessaryAttributes = List("PassengerId", "Survived", "Pclass", "Sex", "Age")
+    data.map(record => {
+      val extractedRecord = extractTrainingAttributes(record, necessaryAttributes)
+      extractedRecord.updated("Age", categorizeAge(extractedRecord.get("Age")))
+    })
+  }
+
 
   /**
    * This function builds the model. It is represented as a function that maps a data record
