@@ -13,6 +13,6 @@ object CreatePrediction extends App{
   val evaluation= TitanicDataSet.createDataSetForTraining(test)
   val evalData= evaluation.map(map=>map-("survived"))
   val prediction= NaiveBayes.applyModel(model,evalData,"passengerID")
-  Utils.createSubmitFile("TitanicPrediction.txt",prediction,"passengerID,survived")
+  Utils.createSubmitFile("TitanicPrediction.csv",prediction,"passengerID,survived")
   println(prediction)
 }

@@ -8,6 +8,6 @@ object CreatePredictionSimpleModel extends App{
 
   val model= TitanicDataSet.simpleModel
   val prediction= NaiveBayes.applyModel(model,test,"passengerID")
-  Utils.createSubmitFile("TitanicSimplePrediction.txt",prediction,"passengerID,survived")
+  Utils.createSubmitFile("TitanicSimplePrediction.csv",prediction,"passengerID,survived")
   println(prediction)
 }

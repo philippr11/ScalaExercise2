@@ -10,7 +10,9 @@ object TitanicDataSet {
    *
    * @return The model represented as a function
    */
-  def simpleModel: (Map[String, Any], String) => (Any, Any) = ???
+  def simpleModel: (Map[String, Any], String) => (Any, Any) = {
+    (map, idKey) => (map(idKey), if (map("sex") == "female") 1 else 0)
+  }
 
   /**
    * This function should count for a given attribute list, how often an attribute is
@@ -53,13 +55,13 @@ object TitanicDataSet {
   /**
    * Helper function that categorizes the age attribute
    */
-  def categorizeAge(age: Option[Any]): String = age match {
-    case Some(a: Double) if a <= 12 => "Child" // Assuming age might be parsed as Double
-    case Some(a: Double) if a <= 19 => "Teenager"
-    case Some(a: Double) if a <= 40 => "Young Adult"
-    case Some(a: Double) if a <= 60 => "Older Adult"
-    case Some(a: Double) => "Old"
-    case _ => "Unknown" // Handle non-numeric or missing age gracefully
+  def categorizeAge(age: Int): String = {
+    if (age < 0) "Young Adult"
+    else if (age <= 12) "Child"
+    else if (age <= 19) "Teenager"
+    else if (age <= 40) "Young Adult"
+    else if (age <= 60) "Older Adult"
+    else "Old"
   }
 
   /**
@@ -71,10 +73,10 @@ object TitanicDataSet {
    * @return Prepared Data Set for using it with Naive Bayes
    */
   def createDataSetForTraining(data: List[Map[String, Any]]): List[Map[String, Any]] = {
-    val necessaryAttributes = List("PassengerId", "Survived", "Pclass", "Sex", "Age")
+    val necessaryAttributes = List("passengerID", "survived", "pclass", "sex", "age")
     data.map(record => {
       val extractedRecord = extractTrainingAttributes(record, necessaryAttributes)
-      extractedRecord.updated("Age", categorizeAge(extractedRecord.get("Age")))
+      extractedRecord.updated("age", categorizeAge(extractedRecord.getOrElse("age", -1).asInstanceOf[Int]))
     })
   }
 
@@ -89,5 +91,8 @@ object TitanicDataSet {
    * @return A tuple consisting of the id (first element) and the predicted class (second element)
    */
   def createModelWithTitanicTrainingData(tdata: List[Map[String, Any]], classAttr: String):
-  (Map[String, Any], String) => (Any, Any) = ???
+  (Map[String, Any], String) => (Any, Any) = {
+    val data = createDataSetForTraining(tdata).map(x => x - "passengerID")
+    NaiveBayes.modelwithAddOneSmoothing(data, classAttr)
+  }
 }

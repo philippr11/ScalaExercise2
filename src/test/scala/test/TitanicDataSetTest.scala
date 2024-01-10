@@ -47,8 +47,8 @@ class TitanicDataSetTest extends AnyFunSuite {
 
     val model= TitanicDataSet.createModelWithTitanicTrainingData(train, "survived")
     //age should be categorized
-    val person1= Map[String,Any]("passengerID" -> 6, "sex" -> "male", "pclass" -> 3,"age"->60)
-    val person2= Map[String,Any]("passengerID" -> 23, "sex" -> "female", "pclass" -> 1,"age"->3)
+    val person1= Map[String,Any]("passengerID" -> 6, "sex" -> "male", "pclass" -> 3,"age"-> "Older Adult")
+    val person2= Map[String,Any]("passengerID" -> 23, "sex" -> "female", "pclass" -> 1,"age"-> "Child")
     val predict1= model(person1,"passengerID")
     val predict2= model(person2,"passengerID")
     println("Hier wird für 2 fiktive Personen eine Vorhersage mit dem erzeugten Modell getroffen. Dazu muss das" +
